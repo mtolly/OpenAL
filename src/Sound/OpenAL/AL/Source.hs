@@ -92,7 +92,7 @@ import Foreign.Marshal.Array ( allocaArray, peekArray, withArrayLen )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr, castPtr )
 import Foreign.Storable ( Storable(..) )
-import Graphics.Rendering.OpenGL.GL.Tensor ( Vector3(..), Vertex3(..) )
+import Linear ( V3(..) )
 
 import Sound.OpenAL.AL.ALboolean
 import Sound.OpenAL.AL.BasicTypes
@@ -144,14 +144,14 @@ foreign import ccall unsafe "alIsSource"
 -- | 'sourcePosition' contains the current location of the source in the world
 -- coordinate system. Any 3-tuple of valid float values is allowed.
 -- Implementation behavior on encountering NaN and infinity is not defined. The
--- initial position is ('Vertex3' 0 0 0).
+-- initial position is ('V3' 0 0 0).
 
-sourcePosition :: Source -> StateVar (Vertex3 ALfloat)
-sourcePosition = makeSourceStateVar dictVertex3ALfloat GetPosition
+sourcePosition :: Source -> StateVar (V3 ALfloat)
+sourcePosition = makeSourceStateVar dictV3ALfloat GetPosition
 
 -- | 'sourceVelocity' contains current velocity (speed and direction) of the
 -- source in the world coordinate system. Any 3-tuple of valid float values is
--- allowed, and the initial velocity is ('Vector3' 0 0 0). 'sourceVelocity' does
+-- allowed, and the initial velocity is ('V3' 0 0 0). 'sourceVelocity' does
 -- not affect 'sourcePosition'. OpenAL does not calculate the velocity from
 -- subsequent position updates, nor does it adjust the position over time based
 -- on the specified velocity. Any such calculation is left to the application.
@@ -162,8 +162,8 @@ sourcePosition = makeSourceStateVar dictVertex3ALfloat GetPosition
 -- Doppler effect perceived by the listener for each source, based on the
 -- velocity of both source and listener, and the Doppler related parameters.
 
-sourceVelocity :: Source -> StateVar (Vector3 ALfloat)
-sourceVelocity = makeSourceStateVar dictVector3ALfloat GetVelocity
+sourceVelocity :: Source -> StateVar (V3 ALfloat)
+sourceVelocity = makeSourceStateVar dictV3ALfloat GetVelocity
 
 -- | 'sourceGain' contains a scalar amplitude multiplier for the given source.
 -- The initial value 1 means that the sound is unattenuated. A 'sourceGain'
@@ -396,7 +396,7 @@ pitch = makeSourceStateVar dictALfloat GetPitch
 
 --------------------------------------------------------------------------------
 
--- | If 'direction' does not contain the zero vector ('Vector3' 0 0 0), the
+-- | If 'direction' does not contain the zero vector ('V3' 0 0 0), the
 -- source is directional. The sound emission is presumed to be symmetric around
 -- the direction vector (cylinder symmetry). Sources are not oriented in full 3
 -- degrees of freedom, only two angles are effectively needed.
@@ -406,8 +406,8 @@ pitch = makeSourceStateVar dictALfloat GetPitch
 -- Specifying a zero vector for a directional source will effectively mark it as
 -- nondirectional.
 
-direction :: Source -> StateVar (Vector3 ALfloat)
-direction = makeSourceStateVar dictVector3ALfloat GetDirection
+direction :: Source -> StateVar (V3 ALfloat)
+direction = makeSourceStateVar dictV3ALfloat GetDirection
 
 -- | 'coneAngles' contains the inner and outer angles of the sound cone, in
 -- degrees. The default of 360 for the inner cone angle means that it covers the
@@ -551,20 +551,12 @@ dictSourceState = Dictionary {
    peekSize  = peek1 unmarshalSourceState,
    marshal   = undefined }
 
-dictVertex3ALfloat :: Dictionary (Vertex3 ALfloat) ALfloat (Vertex3 ALfloat)
-dictVertex3ALfloat = Dictionary {
+dictV3ALfloat :: Dictionary (V3 ALfloat) ALfloat (V3 ALfloat)
+dictV3ALfloat = Dictionary {
    alGetter  = alGetSourcefv,
    alSetter  = alSourcefv,
    size      = 3,
-   peekSize  = peek3 Vertex3,
-   marshal   = id }
-
-dictVector3ALfloat :: Dictionary (Vector3 ALfloat) ALfloat (Vector3 ALfloat)
-dictVector3ALfloat = Dictionary {
-   alGetter  = alGetSourcefv,
-   alSetter  = alSourcefv,
-   size      = 3,
-   peekSize  = peek3 Vector3,
+   peekSize  = peek3 V3,
    marshal   = id }
 
 dictMaybeBuffer :: Dictionary (Maybe Buffer) ALint ALint

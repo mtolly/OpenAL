@@ -42,7 +42,7 @@ import Foreign.Marshal.Array ( allocaArray, withArray )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr )
 import Foreign.Storable ( Storable )
-import Graphics.Rendering.OpenGL.GL.Tensor ( Vector3(..), Vertex3 (..) )
+import Linear ( V3(..) )
 
 import Sound.OpenAL.AL.BasicTypes
 import Sound.OpenAL.AL.PeekPoke
@@ -53,16 +53,16 @@ import Sound.OpenAL.AL.QueryUtils
 -- | 'listenerPosition' contains the current location of the listener in the
 -- world coordinate system. Any 3-tuple of valid float values is allowed.
 -- Implementation behavior on encountering NaN and infinity is not defined. The
--- initial position is ('Vertex3' 0 0 0).
+-- initial position is ('V3' 0 0 0).
 
-listenerPosition :: StateVar (Vertex3 ALfloat)
-listenerPosition = makeListenerVar GetPosition 3 (peek3 Vertex3) listener3f
+listenerPosition :: StateVar (V3 ALfloat)
+listenerPosition = makeListenerVar GetPosition 3 (peek3 V3) listener3f
 
 --------------------------------------------------------------------------------
 
 -- | 'listenerVelocity' contains current velocity (speed and direction) of the
 -- listener in the world coordinate system. Any 3-tuple of valid float
--- values is allowed, and the initial velocity is ('Vector3' 0 0 0).
+-- values is allowed, and the initial velocity is ('V3' 0 0 0).
 -- 'listenerVelocity' does not affect 'listenerPosition'. OpenAL does not
 -- calculate the velocity from subsequent position updates, nor does it
 -- adjust the position over time based on the specified velocity. Any
@@ -74,8 +74,8 @@ listenerPosition = makeListenerVar GetPosition 3 (peek3 Vertex3) listener3f
 -- Doppler effect perceived by the listener for each source, based on the
 -- velocity of both source and listener, and the Doppler related parameters.
 
-listenerVelocity :: StateVar (Vector3 ALfloat)
-listenerVelocity = makeListenerVar GetVelocity 3 (peek3 Vector3) listener3f
+listenerVelocity :: StateVar (V3 ALfloat)
+listenerVelocity = makeListenerVar GetVelocity 3 (peek3 V3) listener3f
 
 --------------------------------------------------------------------------------
 
@@ -106,12 +106,12 @@ listenerGain = makeListenerVar GetGain 1 (peek1 id) listenerf
 -- the \"at\" vector represents the \"up\" direction for the listener. OpenAL
 -- expects two vectors that are linearly independent. These vectors are not
 -- expected to be normalized. If the two vectors are linearly dependent,
--- behavior is undefined. The initial orientation is ('Vector3' 0 0 (-1),
--- 'Vector3' 0 1 0), i.e. looking down the Z axis with the Y axis pointing
+-- behavior is undefined. The initial orientation is ('V3' 0 0 (-1),
+-- 'V3' 0 1 0), i.e. looking down the Z axis with the Y axis pointing
 -- upwards.
 
-orientation :: StateVar (Vector3 ALfloat, Vector3 ALfloat)
-orientation = makeListenerVar GetOrientation 6 (peek6 Vector3) listenerVector6
+orientation :: StateVar (V3 ALfloat, V3 ALfloat)
+orientation = makeListenerVar GetOrientation 6 (peek6 V3) listenerVector6
 
 --------------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ foreign import ccall unsafe "alListenerf"
 listener3f :: Storable a => GetPName -> a -> IO ()
 listener3f n x = with x $ listenerfv n
 
-listenerVector6 :: GetPName -> (Vector3 ALfloat, Vector3 ALfloat) -> IO ()
+listenerVector6 :: GetPName -> (V3 ALfloat, V3 ALfloat) -> IO ()
 listenerVector6 n (x, y) = withArray [x, y] $ listenerfv n
 
 listenerfv :: GetPName -> Ptr a -> IO ()
